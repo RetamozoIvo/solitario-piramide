@@ -111,6 +111,15 @@ VentanaSolitario >> construirContenedores [
 	barraEstado addMorph: labelEstado
 ]
 
+{ #category : 'private' }
+VentanaSolitario >> crearMorphParaCarta: unaCarta enUbicacion: unaUbicacion [
+	^ CartaMorph
+		paraCarta: unaCarta
+		libre: (unaUbicacion estaDisponibleEn: juego)
+		seleccionada: (seleccionActual = unaUbicacion)
+		accion: [ self seleccionarUbicacion: unaUbicacion ]
+]
+
 { #category : 'actions' }
 VentanaSolitario >> deshacerMovimiento [
 	self
@@ -120,33 +129,32 @@ VentanaSolitario >> deshacerMovimiento [
 
 { #category : 'private' }
 VentanaSolitario >> dibujarPiramide [
-	| anchoCarta espacioHorizontal anchoFila xInicial x y carta ubicacion estaLibre estaSeleccionada cartaMorph |
+	| anchoCarta espacioHorizontal |
 	anchoCarta := 72.
 	espacioHorizontal := 84.
 
 	1 to: 7 do: [ :fila |
+		| anchoFila xInicial y |
 		anchoFila := (fila - 1) * espacioHorizontal + anchoCarta.
 		xInicial := (760 - anchoFila) // 2.
 		y := 10 + ((fila - 1) * 46).
 		1 to: fila do: [ :posicion |
+			| carta |
 			carta := juego piramide cartaEnFila: fila posicion: posicion.
 			carta ifNotNil: [
+				| ubicacion x cartaMorph |
 				ubicacion := UbicacionPiramide fila: fila posicion: posicion.
-				estaLibre := ubicacion estaDisponibleEn: juego.
-				estaSeleccionada := seleccionActual = ubicacion.
 				x := xInicial + ((posicion - 1) * espacioHorizontal).
-				cartaMorph := CartaMorph
-					paraCarta: carta
-					libre: estaLibre
-					seleccionada: estaSeleccionada
-					accion: [ self seleccionarUbicacion: ubicacion ].
+				cartaMorph := self
+					crearMorphParaCarta: carta
+					enUbicacion: ubicacion.
 				cartaMorph position: contenedorTablero position + (x @ y).
 				contenedorTablero addMorph: cartaMorph ] ] ]
 ]
 
 { #category : 'private' }
 VentanaSolitario >> dibujarReservaYPozo [
-	| reservaMorph pozoMorph cartaVisible ubicacionPozo |
+	| reservaMorph pozoMorph cartaVisible |
 	reservaMorph := CartaMorph
 		paraReservaConCantidad: juego pozo cantidadEnReserva
 		accion: [ self robarDelMazo ].
@@ -158,12 +166,9 @@ VentanaSolitario >> dibujarReservaYPozo [
 		ifNil: [
 			pozoMorph := CartaMorph paraPozoVacio ]
 		ifNotNil: [
-			ubicacionPozo := UbicacionPozo new.
-			pozoMorph := CartaMorph
-				paraCarta: cartaVisible
-				libre: true
-				seleccionada: (seleccionActual = ubicacionPozo)
-				accion: [ self seleccionarUbicacion: ubicacionPozo ] ].
+			pozoMorph := self
+				crearMorphParaCarta: cartaVisible
+				enUbicacion: UbicacionPozo new ].
 	pozoMorph position: contenedorTablero position + (400 @ 400).
 	contenedorTablero addMorph: pozoMorph
 ]

@@ -44,6 +44,10 @@ UbicacionCartaTest >> testUbicacionPozo [
 	self assert: ubiPozo hash equals: UbicacionPozo new hash.
 	self assert: ubiPozo filaAfectada isNil.
 
+	self deny: (ubiPozo estaDisponibleEn: juego).
+	self assert: (ubiPozo cartaEn: juego) isNil.
+
+	juego robarCarta.
 	self assert: (ubiPozo estaDisponibleEn: juego).
 	cartaVisible := ubiPozo cartaEn: juego.
 	self assert: ubiPozo carta equals: cartaVisible.

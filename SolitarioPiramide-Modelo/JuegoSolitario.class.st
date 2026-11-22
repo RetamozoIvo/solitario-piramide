@@ -132,7 +132,6 @@ JuegoSolitario >> initializeConMazo: unMazo duracion: unosSegundos registroDeRec
 	piramide := Piramide new.
 	piramide repartirDe: mazo.
 	pozo := Pozo conReserva: mazo.
-	pozo puedeRobar ifTrue: [ pozo robar ].
 	tiempo := TiempoDeJuego conDuracion: unosSegundos.
 	estado := EnCurso new.
 	historial := OrderedCollection new.

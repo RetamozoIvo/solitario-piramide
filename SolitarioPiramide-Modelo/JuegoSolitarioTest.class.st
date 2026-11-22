@@ -84,6 +84,8 @@ JuegoSolitarioTest >> testDeshacerTodosLosTiposDeMovimiento [
 	self assert: (juego piramide cartaEnFila: 7 posicion: 3) equals: (Carta palo: 'Diamantes' valor: 13).
 
 	"2. Eliminar Par (pirámide + pozo) y deshacer"
+	juego robarCarta.
+	self assert: juego cartaPozoVisible equals: (Carta palo: 'Tréboles' valor: 4).
 	juego
 		eliminarParEn: (UbicacionPiramide fila: 7 posicion: 4)
 		y: UbicacionPozo new.
@@ -102,6 +104,10 @@ JuegoSolitarioTest >> testDeshacerTodosLosTiposDeMovimiento [
 	juego deshacer.
 	self assert: juego cartaPozoVisible equals: (Carta palo: 'Tréboles' valor: 4).
 	self assert: juego pozo puedeRobar.
+
+	juego deshacer.
+	self assert: juego cartaPozoVisible isNil.
+	self assert: juego pozo cantidadEnReserva equals: 2.
 
 	"4. Deshacer con historial vacío señala MovimientoInvalido"
 	self should: [ juego deshacer ] raise: MovimientoInvalido
@@ -136,8 +142,10 @@ JuegoSolitarioTest >> testInicializacion [
 	self assert: juego puntaje equals: 0.
 	self assert: juego tiempoRestante equals: 300.
 	self assert: juego estado permiteMovimientos.
-	self assert: (juego cartaPozoVisible isKindOf: Carta).
-	self assert: juego mazo cantidadDeCartas equals: 23.
+	self assert: juego cartaPozoVisible isNil.
+	self assert: juego pozo cantidadEnReserva equals: 24.
+	self assert: juego pozo cantidadEnDescarte equals: 0.
+	self assert: juego mazo cantidadDeCartas equals: 24.
 	self assert: ((juego piramide cartaEnFila: 1 posicion: 1) isKindOf: Carta).
 	self assert: ((juego piramide cartaEnFila: 7 posicion: 7) isKindOf: Carta)
 ]
@@ -242,7 +250,13 @@ JuegoSolitarioTest >> testReyLibreYCubierto [
 JuegoSolitarioTest >> testSacarCartaDelPozo [
 	| juego primeraCarta segundaCarta ultimaCarta |
 	juego := JuegoSolitario new.
-	primeraCarta := juego cartaPozoVisible.
+	self assert: juego cartaPozoVisible isNil.
+	self assert: juego mazo cantidadDeCartas equals: 24.
+
+	primeraCarta := juego sacarCartaDelPozo.
+	self assert: (primeraCarta isKindOf: Carta).
+	self assert: juego cartaPozoVisible equals: primeraCarta.
+	self assert: juego mazo cantidadDeCartas equals: 23.
 
 	segundaCarta := juego sacarCartaDelPozo.
 	self assert: (segundaCarta isKindOf: Carta).

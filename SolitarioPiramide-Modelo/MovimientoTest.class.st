@@ -63,16 +63,26 @@ MovimientoTest >> testEliminarReyEjecutarYDeshacer [
 
 { #category : 'tests' }
 MovimientoTest >> testRobarCartaEjecutarYDeshacer [
-	| juego mov visibleAnterior |
+	| juego mov1 mov2 |
 	juego := self crearJuegoDePrueba.
-	visibleAnterior := juego cartaPozoVisible.
-	mov := RobarCarta new.
+	self assert: juego cartaPozoVisible isNil.
+	self assert: juego pozo cantidadEnReserva equals: 2.
 
-	mov ejecutarEn: juego.
+	mov1 := RobarCarta new.
+	mov1 ejecutarEn: juego.
+	self assert: juego cartaPozoVisible equals: (Carta palo: 'Tréboles' valor: 4).
+	self assert: juego pozo puedeRobar.
+
+	mov2 := RobarCarta new.
+	mov2 ejecutarEn: juego.
 	self assert: juego cartaPozoVisible equals: (Carta palo: 'Diamantes' valor: 10).
 	self deny: juego pozo puedeRobar.
 
-	mov deshacerEn: juego.
-	self assert: juego cartaPozoVisible equals: visibleAnterior.
-	self assert: juego pozo puedeRobar
+	mov2 deshacerEn: juego.
+	self assert: juego cartaPozoVisible equals: (Carta palo: 'Tréboles' valor: 4).
+	self assert: juego pozo puedeRobar.
+
+	mov1 deshacerEn: juego.
+	self assert: juego cartaPozoVisible isNil.
+	self assert: juego pozo cantidadEnReserva equals: 2
 ]
