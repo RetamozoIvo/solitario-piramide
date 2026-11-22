@@ -60,16 +60,22 @@ CartaMorph class >> directorioAssets [
 
 { #category : 'assets' }
 CartaMorph class >> imagenParaCarta: unaCarta [
-	| clave archivo formOriginal formEscalado |
+	| tamano clave archivo formOriginal escala formEscalado |
+	tamano := 70 @ 90.
 	clave := unaCarta palo , '-' , unaCarta nombreDelValor.
 	(self imagenesCache at: clave ifAbsent: [ nil ])
-		ifNotNil: [ :formEnCache | ^ formEnCache ].
+		ifNotNil: [ :formEnCache |
+			formEnCache extent = tamano ifTrue: [ ^ formEnCache ] ].
 	archivo := self archivoImagenParaCarta: unaCarta.
 	(archivo isNil or: [ archivo exists not ]) ifTrue: [ ^ nil ].
 	^ [
 		formOriginal := archivo binaryReadStreamDo: [ :stream |
 			ImageReadWriter formFromStream: stream ].
-		formEscalado := formOriginal scaledToSize: 66 @ 86.
+		escala := (tamano x / formOriginal width) @ (tamano y / formOriginal height).
+		formEscalado := formOriginal
+			magnify: formOriginal boundingBox
+			by: escala
+			smoothing: 2.
 		self imagenesCache at: clave put: formEscalado.
 		formEscalado
 	] on: Error do: [ :ex | nil ]
@@ -114,7 +120,7 @@ CartaMorph >> agregarEtiqueta: unTexto color: unColor desplazamiento: unPunto [
 ]
 
 { #category : 'private' }
-CartaMorph >> agregarImagenDeCarta: unForm libre: estaLibre [
+CartaMorph >> agregarImagenDeCarta: unForm libre: estaLibre seleccionada: estaSeleccionada [
 	| imagenMorph desplazamiento |
 	imagenMorph := ImageMorph new
 		form: unForm;
@@ -130,7 +136,18 @@ CartaMorph >> agregarImagenDeCarta: unForm libre: estaLibre [
 			extent: self extent - (2 @ 2);
 			position: self position + (1 @ 1);
 			yourself.
-		self addMorph: velo ]
+		self addMorph: velo ].
+
+	estaSeleccionada ifTrue: [
+		| marcoSeleccion |
+		marcoSeleccion := BorderedMorph new
+			color: Color transparent;
+			borderColor: Color orange;
+			borderWidth: 3;
+			extent: self extent;
+			position: self position;
+			yourself.
+		self addMorph: marcoSeleccion ]
 ]
 
 { #category : 'private' }
@@ -174,7 +191,7 @@ CartaMorph >> configurarParaCarta: unaCarta libre: estaLibre seleccionada: estaS
 				ifTrue: [
 					self color: Color white.
 					self borderColor: Color darkGray.
-					self borderWidth: 2 ]
+					self borderWidth: 1 ]
 				ifFalse: [
 					self color: (Color r: 0.82 g: 0.82 b: 0.82).
 					self borderColor: Color gray.
@@ -183,7 +200,7 @@ CartaMorph >> configurarParaCarta: unaCarta libre: estaLibre seleccionada: estaS
 	imagenForm := self class imagenParaCarta: unaCarta.
 	imagenForm
 		ifNotNil: [
-			self agregarImagenDeCarta: imagenForm libre: estaLibre ]
+			self agregarImagenDeCarta: imagenForm libre: estaLibre seleccionada: estaSeleccionada ]
 		ifNil: [
 			self agregarTextoRespaldoParaCarta: unaCarta libre: estaLibre ]
 ]
