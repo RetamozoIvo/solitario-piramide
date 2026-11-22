@@ -17,6 +17,11 @@ Mazo class >> conCartas: unaColeccion [
 	^ self basicNew initializeConCartas: unaColeccion
 ]
 
+{ #category : 'operations' }
+Mazo >> agregarCartas: unaColeccion [
+	cartas addAll: unaColeccion
+]
+
 { #category : 'accessing' }
 Mazo >> cantidadDeCartas [
 	^ cartas size
@@ -56,4 +61,9 @@ Mazo >> mezclar [
 Mazo >> tomarCarta [
 	self estaVacio ifTrue: [ ^ nil ].
 	^ cartas removeFirst
+]
+
+{ #category : 'operations' }
+Mazo >> vaciar [
+	cartas removeAll
 ]

@@ -68,3 +68,37 @@ PozoTest >> testRobarRetirarYRevelarAnterior [
 	self assert: pozo cartaVisible isNil.
 	self assert: pozo retirarVisible isNil
 ]
+
+{ #category : 'tests' }
+PozoTest >> testReciclarYMezclarCuandoReservaEstaVacia [
+	| cartasOriginales pozo ordenReciclado descarteOriginal |
+	cartasOriginales := (1 to: 12) collect: [ :v | Carta palo: 'Corazones' valor: v ].
+	pozo := Pozo conReserva: (Mazo conCartas: cartasOriginales).
+
+	self deny: pozo puedeReciclar.
+	self deny: pozo reciclar.
+
+	12 timesRepeat: [ pozo robar ].
+	self deny: pozo puedeRobar.
+	self assert: pozo puedeReciclar.
+	self assert: pozo cantidadEnReserva equals: 0.
+	self assert: pozo cantidadEnDescarte equals: 12.
+	descarteOriginal := pozo descarte.
+
+	self assert: pozo reciclar.
+	self assert: pozo puedeRobar.
+	self deny: pozo puedeReciclar.
+	self assert: pozo cantidadEnReserva equals: 12.
+	self assert: pozo cantidadEnDescarte equals: 0.
+	self assert: pozo cartaVisible isNil.
+
+	ordenReciclado := OrderedCollection new.
+	12 timesRepeat: [ ordenReciclado add: pozo robar ].
+	self assert: ordenReciclado asSet equals: cartasOriginales asSet.
+	self deny: (ordenReciclado = cartasOriginales asOrderedCollection).
+
+	pozo restaurarDescarte: descarteOriginal.
+	self assert: pozo cantidadEnReserva equals: 0.
+	self assert: pozo descarte equals: descarteOriginal.
+	self assert: pozo cartaVisible equals: descarteOriginal last
+]

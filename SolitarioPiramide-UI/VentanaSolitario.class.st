@@ -154,12 +154,29 @@ VentanaSolitario >> dibujarPiramide [
 
 { #category : 'private' }
 VentanaSolitario >> dibujarReservaYPozo [
-	| reservaMorph pozoMorph cartaVisible |
+	| reservaMorph pozoMorph cartaVisible accionReserva |
+	accionReserva := juego pozo puedeRobar
+		ifTrue: [ [ self robarDelMazo ] ]
+		ifFalse: [
+			juego pozo puedeReciclar
+				ifTrue: [ [ self reciclarPozo ] ]
+				ifFalse: [ [ self robarDelMazo ] ] ].
+
 	reservaMorph := CartaMorph
 		paraReservaConCantidad: juego pozo cantidadEnReserva
-		accion: [ self robarDelMazo ].
+		accion: accionReserva.
 	reservaMorph position: contenedorTablero position + (260 @ 400).
 	contenedorTablero addMorph: reservaMorph.
+
+	juego pozo puedeReciclar ifTrue: [
+		| botonMezclar |
+		botonMezclar := SimpleButtonMorph new
+			label: 'Mezclar pozo';
+			target: self;
+			actionSelector: #reciclarPozo;
+			yourself.
+		botonMezclar position: contenedorTablero position + ((248 - botonMezclar width) @ 434).
+		contenedorTablero addMorph: botonMezclar ].
 
 	cartaVisible := juego cartaPozoVisible.
 	cartaVisible
@@ -203,6 +220,13 @@ VentanaSolitario >> nuevaPartida [
 	juego := JuegoSolitario conRegistroDeRecords: registroDeRecords.
 	seleccionActual := nil.
 	self actualizarInterfazConMensaje: 'Seleccioná una carta libre, un rey o robá de la reserva.'
+]
+
+{ #category : 'actions' }
+VentanaSolitario >> reciclarPozo [
+	self
+		ejecutarAccionJuego: [ juego reciclarPozo ]
+		mensajeExito: 'Pozo mezclado nuevamente en la reserva.'
 ]
 
 { #category : 'private' }

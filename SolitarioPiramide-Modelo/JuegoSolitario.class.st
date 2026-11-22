@@ -101,16 +101,19 @@ JuegoSolitario >> estado [
 
 { #category : 'testing' }
 JuegoSolitario >> hayJugadasPosibles [
-	| disponibles |
+	| libresPiramide cartasPozo |
 	pozo puedeRobar ifTrue: [ ^ true ].
-	disponibles := piramide cartasLibres.
-	pozo cartaVisible ifNotNil: [ :visible | disponibles add: visible ].
-	(disponibles anySatisfy: [ :unaCarta | unaCarta esRey ]) ifTrue: [ ^ true ].
-	1 to: disponibles size do: [ :i |
-		i + 1 to: disponibles size do: [ :j |
-			((disponibles at: i) suma13Con: (disponibles at: j))
+	libresPiramide := piramide cartasLibres.
+	(libresPiramide anySatisfy: [ :unaCarta | unaCarta esRey ]) ifTrue: [ ^ true ].
+	1 to: libresPiramide size do: [ :i |
+		i + 1 to: libresPiramide size do: [ :j |
+			((libresPiramide at: i) suma13Con: (libresPiramide at: j))
 				ifTrue: [ ^ true ] ] ].
-	^ false
+	cartasPozo := pozo descarte.
+	(cartasPozo anySatisfy: [ :unaCarta | unaCarta esRey ]) ifTrue: [ ^ true ].
+	^ cartasPozo anySatisfy: [ :cartaPozo |
+		libresPiramide anySatisfy: [ :cartaPiramide |
+			cartaPiramide suma13Con: cartaPozo ] ]
 ]
 
 { #category : 'initialization' }
@@ -174,6 +177,11 @@ JuegoSolitario >> puedeDeshacer [
 { #category : 'accessing' }
 JuegoSolitario >> puntaje [
 	^ puntaje
+]
+
+{ #category : 'operations' }
+JuegoSolitario >> reciclarPozo [
+	self ejecutarMovimiento: ReciclarPozo new
 ]
 
 { #category : 'operations' }

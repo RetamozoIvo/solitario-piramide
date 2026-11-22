@@ -1,6 +1,7 @@
 "
 Representa el pozo auxiliar del Solitario de Pirámide, compuesto por una reserva (Mazo) y una pila de descarte.
-Al robar se pasa la carta superior de la reserva al descarte; al retirar la visible, vuelve a quedar visible la carta anterior del descarte. No recicla el mazo.
+Al robar se pasa la carta superior de la reserva al descarte; al retirar la visible, vuelve a quedar visible la carta anterior del descarte.
+Cuando la reserva queda vacía, permite reciclar y mezclar nuevamente las cartas del descarte en la reserva.
 "
 Class {
 	#name : 'Pozo',
@@ -67,13 +68,33 @@ Pozo >> initializeConReserva: unMazo [
 ]
 
 { #category : 'testing' }
+Pozo >> puedeReciclar [
+	^ reserva estaVacio and: [ descarte isEmpty not ]
+]
+
+{ #category : 'testing' }
 Pozo >> puedeRobar [
 	^ reserva estaVacio not
+]
+
+{ #category : 'operations' }
+Pozo >> reciclar [
+	self puedeReciclar ifFalse: [ ^ false ].
+	reserva agregarCartas: descarte.
+	descarte removeAll.
+	reserva mezclar.
+	^ true
 ]
 
 { #category : 'accessing' }
 Pozo >> reserva [
 	^ reserva
+]
+
+{ #category : 'operations' }
+Pozo >> restaurarDescarte: unaColeccion [
+	reserva vaciar.
+	descarte := OrderedCollection withAll: unaColeccion
 ]
 
 { #category : 'operations' }

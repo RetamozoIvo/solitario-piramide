@@ -274,6 +274,51 @@ JuegoSolitarioTest >> testSacarCartaDelPozo [
 ]
 
 { #category : 'tests' }
+JuegoSolitarioTest >> testReciclarPozoYDeshacer [
+	| cartas juego cartasRecicladas |
+	cartas := OrderedCollection new.
+	28 timesRepeat: [ cartas add: (Carta palo: 'Picas' valor: 2) ].
+	cartas add: (Carta palo: 'Corazones' valor: 11).
+	cartas add: (Carta palo: 'Tréboles' valor: 4).
+	juego := JuegoSolitario conMazo: (Mazo conCartas: cartas) duracion: 300.
+
+	"No se puede reciclar mientras queden cartas en la reserva"
+	self should: [ juego reciclarPozo ] raise: MovimientoInvalido.
+
+	"Al robar todas las cartas, el 11 en el descarte mantiene jugadas posibles"
+	juego robarCarta.
+	juego robarCarta.
+	self deny: juego pozo puedeRobar.
+	self assert: juego pozo puedeReciclar.
+	self assert: juego estado permiteMovimientos.
+	self assert: juego hayJugadasPosibles.
+
+	"Reciclar devuelve y mezcla el descarte en la reserva"
+	juego reciclarPozo.
+	self assert: juego pozo puedeRobar.
+	self deny: juego pozo puedeReciclar.
+	self assert: juego pozo cantidadEnReserva equals: 2.
+	self assert: juego mazo cantidadDeCartas equals: 2.
+	self assert: juego cartaPozoVisible isNil.
+
+	"Deshacer restaura el descarte anterior"
+	juego deshacer.
+	self deny: juego pozo puedeRobar.
+	self assert: juego pozo puedeReciclar.
+	self assert: juego cartaPozoVisible equals: (Carta palo: 'Tréboles' valor: 4).
+
+	"Volver a reciclar permite robar las mismas cartas nuevamente"
+	juego reciclarPozo.
+	cartasRecicladas := OrderedCollection new.
+	2 timesRepeat: [
+		juego robarCarta.
+		cartasRecicladas add: juego cartaPozoVisible ].
+	self
+		assert: cartasRecicladas asSet
+		equals: { Carta palo: 'Corazones' valor: 11. Carta palo: 'Tréboles' valor: 4 } asSet
+]
+
+{ #category : 'tests' }
 JuegoSolitarioTest >> testSumarPuntos [
 	| juego |
 	juego := JuegoSolitario new.

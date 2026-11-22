@@ -21,6 +21,7 @@ classDiagram
         +eliminarReyEn:
         +eliminarParEn:y:
         +robarCarta
+        +reciclarPozo
         +deshacer
         +pasarSegundos:
         +cartaPozoVisible
@@ -54,6 +55,8 @@ classDiagram
         +mezclar
         +tomarCarta
         +devolverCarta:
+        +agregarCartas:
+        +vaciar
         +cantidadDeCartas
         +estaVacio
     }
@@ -79,6 +82,9 @@ classDiagram
         +cartaVisible
         +retirarVisible
         +puedeRobar
+        +puedeReciclar
+        +reciclar
+        +restaurarDescarte:
         +deshacerRobar
         +devolverAlDescarte:
         +cantidadEnReserva
@@ -220,6 +226,12 @@ classDiagram
         +deshacerEn:
     }
 
+    class ReciclarPozo {
+        -OrderedCollection descarteAnterior
+        +ejecutarEn:
+        +deshacerEn:
+    }
+
     %% Herencias
     Error <|-- MovimientoInvalido
     UbicacionCarta <|-- UbicacionPiramide
@@ -230,6 +242,7 @@ classDiagram
     Movimiento <|-- EliminarRey
     Movimiento <|-- EliminarPar
     Movimiento <|-- RobarCarta
+    Movimiento <|-- ReciclarPozo
 
     %% Composiciones y asociaciones principales
     JuegoSolitario *-- "1" Mazo : mazo
@@ -254,5 +267,6 @@ classDiagram
     EliminarRey ..> MovimientoInvalido : señala
     EliminarPar ..> MovimientoInvalido : señala
     RobarCarta ..> MovimientoInvalido : señala
+    ReciclarPozo ..> MovimientoInvalido : señala
     EstadoPartida ..> MovimientoInvalido : señala
 ```

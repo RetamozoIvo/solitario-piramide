@@ -86,3 +86,32 @@ MovimientoTest >> testRobarCartaEjecutarYDeshacer [
 	self assert: juego cartaPozoVisible isNil.
 	self assert: juego pozo cantidadEnReserva equals: 2
 ]
+
+{ #category : 'tests' }
+MovimientoTest >> testReciclarPozoEjecutarYDeshacer [
+	| juego mov |
+	juego := self crearJuegoDePrueba.
+	mov := ReciclarPozo new.
+
+	self should: [ mov ejecutarEn: juego ] raise: MovimientoInvalido.
+
+	juego robarCarta.
+	self should: [ mov ejecutarEn: juego ] raise: MovimientoInvalido.
+
+	juego robarCarta.
+	self deny: juego pozo puedeRobar.
+	self assert: juego pozo puedeReciclar.
+	self assert: juego cartaPozoVisible equals: (Carta palo: 'Diamantes' valor: 10).
+
+	mov ejecutarEn: juego.
+	self assert: juego pozo puedeRobar.
+	self deny: juego pozo puedeReciclar.
+	self assert: juego pozo cantidadEnReserva equals: 2.
+	self assert: juego cartaPozoVisible isNil.
+
+	mov deshacerEn: juego.
+	self deny: juego pozo puedeRobar.
+	self assert: juego pozo puedeReciclar.
+	self assert: juego pozo cantidadEnReserva equals: 0.
+	self assert: juego cartaPozoVisible equals: (Carta palo: 'Diamantes' valor: 10)
+]
