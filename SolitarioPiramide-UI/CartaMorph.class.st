@@ -1,6 +1,6 @@
 "
 Representa visualmente una carta (o un casillero de reserva/pozo) en Morphic para el Solitario de Pirámide.
-Dibuja el valor y palo con colores acordes (rojo para Corazones y Diamantes, negro para Tréboles y Picas),
+Carga y cachea la imagen JPG correspondiente al palo y valor desde la carpeta assets (con respaldo en texto si falta el archivo),
 atenúa cartas cubiertas, resalta la carta seleccionada y ejecuta un bloque de acción al hacer clic.
 "
 Class {
@@ -9,9 +9,81 @@ Class {
 	#instVars : [
 		'accionAlClic'
 	],
+	#classVars : [
+		'ImagenesCache'
+	],
 	#category : 'SolitarioPiramide-UI',
 	#package : 'SolitarioPiramide-UI'
 }
+
+{ #category : 'assets' }
+CartaMorph class >> archivoImagenParaCarta: unaCarta [
+	| directorio datosPalo nombreArchivo |
+	directorio := self directorioAssets.
+	directorio ifNil: [ ^ nil ].
+	datosPalo := self carpetaYPrefijoParaPalo: unaCarta palo.
+	datosPalo ifNil: [ ^ nil ].
+	nombreArchivo := datosPalo second , '-' , unaCarta nombreDelValor , '.jpg'.
+	^ directorio / datosPalo first / nombreArchivo
+]
+
+{ #category : 'assets' }
+CartaMorph class >> carpetaYPrefijoParaPalo: unPalo [
+	unPalo = 'Corazones' ifTrue: [ ^ #('corazones' 'IQ') ].
+	unPalo = 'Diamantes' ifTrue: [ ^ #('diamantes' 'IM') ].
+	unPalo = 'Picas' ifTrue: [ ^ #('picas' 'IEM') ].
+	unPalo = 'Tréboles' ifTrue: [ ^ #('treboles' 'ISI') ].
+	^ nil
+]
+
+{ #category : 'assets' }
+CartaMorph class >> directorioAssets [
+	| candidatos |
+	[
+		| repo |
+		repo := IceRepository registry
+			detect: [ :cadaRepo |
+				cadaRepo location notNil and: [
+					(cadaRepo location / 'assets' / 'corazones') exists ] ]
+			ifNone: [ nil ].
+		repo ifNotNil: [ ^ repo location / 'assets' ]
+	] on: Error do: [ :ex | ].
+
+	candidatos := {
+		FileLocator imageDirectory / 'pharo-local' / 'iceberg' / 'RetamozoIvo' / 'solitario-piramide' / 'assets'.
+		FileLocator imageDirectory / 'assets'.
+		FileLocator workingDirectory / 'assets' }.
+	^ candidatos
+		detect: [ :unDirectorio | unDirectorio exists ]
+		ifNone: [ nil ]
+]
+
+{ #category : 'assets' }
+CartaMorph class >> imagenParaCarta: unaCarta [
+	| clave archivo formOriginal formEscalado |
+	clave := unaCarta palo , '-' , unaCarta nombreDelValor.
+	(self imagenesCache at: clave ifAbsent: [ nil ])
+		ifNotNil: [ :formEnCache | ^ formEnCache ].
+	archivo := self archivoImagenParaCarta: unaCarta.
+	(archivo isNil or: [ archivo exists not ]) ifTrue: [ ^ nil ].
+	^ [
+		formOriginal := archivo binaryReadStreamDo: [ :stream |
+			ImageReadWriter formFromStream: stream ].
+		formEscalado := formOriginal scaledToSize: 66 @ 86.
+		self imagenesCache at: clave put: formEscalado.
+		formEscalado
+	] on: Error do: [ :ex | nil ]
+]
+
+{ #category : 'assets' }
+CartaMorph class >> imagenesCache [
+	^ ImagenesCache ifNil: [ ImagenesCache := Dictionary new ]
+]
+
+{ #category : 'assets' }
+CartaMorph class >> limpiarCacheImagenes [
+	ImagenesCache := nil
+]
 
 { #category : 'instance creation' }
 CartaMorph class >> paraCarta: unaCarta libre: estaLibre seleccionada: estaSeleccionada accion: unBloque [
@@ -42,6 +114,37 @@ CartaMorph >> agregarEtiqueta: unTexto color: unColor desplazamiento: unPunto [
 ]
 
 { #category : 'private' }
+CartaMorph >> agregarImagenDeCarta: unForm libre: estaLibre [
+	| imagenMorph desplazamiento |
+	imagenMorph := ImageMorph new
+		form: unForm;
+		yourself.
+	desplazamiento := ((self width - unForm width) // 2) @ ((self height - unForm height) // 2).
+	imagenMorph position: self position + desplazamiento.
+	self addMorph: imagenMorph.
+
+	estaLibre ifFalse: [
+		| velo |
+		velo := Morph new
+			color: (Color black alpha: 0.35);
+			extent: self extent - (2 @ 2);
+			position: self position + (1 @ 1);
+			yourself.
+		self addMorph: velo ]
+]
+
+{ #category : 'private' }
+CartaMorph >> agregarTextoRespaldoParaCarta: unaCarta libre: estaLibre [
+	| colorTexto textoPalo |
+	colorTexto := self colorTextoParaCarta: unaCarta libre: estaLibre.
+	textoPalo := self etiquetaCortaParaPalo: unaCarta palo.
+
+	self agregarEtiqueta: unaCarta nombreDelValor color: colorTexto desplazamiento: 8 @ 8.
+	self agregarEtiqueta: textoPalo color: colorTexto desplazamiento: 10 @ 42.
+	self agregarEtiqueta: unaCarta nombreDelValor color: colorTexto desplazamiento: 48 @ 70
+]
+
+{ #category : 'private' }
 CartaMorph >> colorTextoParaCarta: unaCarta libre: estaLibre [
 	| esRoja |
 	esRoja := #('Corazones' 'Diamantes') includes: unaCarta palo.
@@ -56,14 +159,14 @@ CartaMorph >> colorTextoParaCarta: unaCarta libre: estaLibre [
 
 { #category : 'initialization' }
 CartaMorph >> configurarParaCarta: unaCarta libre: estaLibre seleccionada: estaSeleccionada accion: unBloque [
-	| colorTexto textoPalo |
+	| imagenForm |
 	accionAlClic := unBloque.
 	self extent: 72 @ 92.
 	self removeAllMorphs.
 
 	estaSeleccionada
 		ifTrue: [
-			self color: (Color r: 1.0 g: 0.97 b: 0.8).
+			self color: (Color r: 1.0 g: 0.92 b: 0.55).
 			self borderColor: Color orange.
 			self borderWidth: 3 ]
 		ifFalse: [
@@ -77,12 +180,12 @@ CartaMorph >> configurarParaCarta: unaCarta libre: estaLibre seleccionada: estaS
 					self borderColor: Color gray.
 					self borderWidth: 1 ] ].
 
-	colorTexto := self colorTextoParaCarta: unaCarta libre: estaLibre.
-	textoPalo := self etiquetaCortaParaPalo: unaCarta palo.
-
-	self agregarEtiqueta: unaCarta nombreDelValor color: colorTexto desplazamiento: 8 @ 8.
-	self agregarEtiqueta: textoPalo color: colorTexto desplazamiento: 10 @ 42.
-	self agregarEtiqueta: unaCarta nombreDelValor color: colorTexto desplazamiento: 48 @ 70
+	imagenForm := self class imagenParaCarta: unaCarta.
+	imagenForm
+		ifNotNil: [
+			self agregarImagenDeCarta: imagenForm libre: estaLibre ]
+		ifNil: [
+			self agregarTextoRespaldoParaCarta: unaCarta libre: estaLibre ]
 ]
 
 { #category : 'initialization' }
