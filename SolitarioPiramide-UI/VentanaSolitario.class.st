@@ -57,17 +57,17 @@ VentanaSolitario >> actualizarMensajeFinDePartida [
 VentanaSolitario >> construirBarraSuperior [
 	| botonNueva botonDeshacer |
 	labelPuntaje := StringMorph contents: 'Puntaje: 0'.
-	labelPuntaje color: Color white.
+	self estilizarEtiqueta: labelPuntaje color: Color white.
 	labelPuntaje position: self position + (20 @ 18).
 	self addMorph: labelPuntaje.
 
 	labelTiempo := StringMorph contents: 'Tiempo: 300 s'.
-	labelTiempo color: Color white.
+	self estilizarEtiqueta: labelTiempo color: Color white.
 	labelTiempo position: self position + (165 @ 18).
 	self addMorph: labelTiempo.
 
 	labelRecord := StringMorph contents: 'Récord: 0'.
-	labelRecord color: Color yellow.
+	self estilizarEtiqueta: labelRecord color: Color yellow.
 	labelRecord position: self position + (320 @ 18).
 	self addMorph: labelRecord.
 
@@ -106,7 +106,7 @@ VentanaSolitario >> construirContenedores [
 	self addMorph: barraEstado.
 
 	labelEstado := StringMorph contents: ''.
-	labelEstado color: Color white.
+	self estilizarEtiqueta: labelEstado color: Color white.
 	labelEstado position: barraEstado position + (12 @ 10).
 	barraEstado addMorph: labelEstado
 ]
@@ -201,6 +201,18 @@ VentanaSolitario >> ejecutarAccionJuego: unBloque mensajeExito: unMensaje [
 	] on: MovimientoInvalido do: [ :error |
 		seleccionActual := nil.
 		self actualizarInterfazConMensaje: error motivo ]
+]
+
+{ #category : 'private' }
+VentanaSolitario >> fuenteDeEtiquetas [
+	^ LogicalFont familyName: 'Source Sans Pro' pointSize: 16
+]
+
+{ #category : 'private' }
+VentanaSolitario >> estilizarEtiqueta: unaEtiqueta color: unColor [
+	unaEtiqueta
+		font: self fuenteDeEtiquetas;
+		color: unColor
 ]
 
 { #category : 'initialization' }
