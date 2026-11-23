@@ -3,6 +3,7 @@ Interfaz gráfica Morphic para el Solitario de Pirámide en Pharo 12.
 Se comunica exclusivamente mediante la API pública de SolitarioPiramide-Modelo sin contener lógica de reglas.
 Muestra la pirámide de 7 filas, la reserva, la carta visible del pozo, el puntaje, el tiempo restante,
 el récord, los botones de Nueva partida y Deshacer, y una barra de estado para mensajes y errores controlados.
+Cuando la ventana se agranda, el contenido se mantiene centrado respecto del tamaño base.
 "
 Class {
 	#name : 'VentanaSolitario',
@@ -16,7 +17,8 @@ Class {
 		'labelTiempo',
 		'labelRecord',
 		'labelEstado',
-		'contenedorTablero'
+		'contenedorTablero',
+		'desplazamiento'
 	],
 	#category : 'SolitarioPiramide-UI',
 	#package : 'SolitarioPiramide-UI'
@@ -53,6 +55,31 @@ VentanaSolitario >> actualizarMensajeFinDePartida [
 	self redibujarTablero
 ]
 
+{ #category : 'layout' }
+VentanaSolitario >> altoBase [
+	^ 620
+]
+
+{ #category : 'layout' }
+VentanaSolitario >> anchoBase [
+	^ 760
+]
+
+{ #category : 'layout' }
+VentanaSolitario >> centrarContenido [
+	"Desplaza todo el contenido para que quede centrado cuando la ventana es mas grande que el tamano base.
+	Aplica solo la diferencia respecto del desplazamiento anterior, asi no se acumula."
+	| nuevoDesplazamiento diferencia |
+	desplazamiento ifNil: [ desplazamiento := 0 @ 0 ].
+	nuevoDesplazamiento := (((self width - self anchoBase) // 2) max: 0)
+		@ (((self height - self altoBase) // 2) max: 0).
+	diferencia := nuevoDesplazamiento - desplazamiento.
+	diferencia = (0 @ 0) ifTrue: [ ^ self ].
+	self submorphsDo: [ :cadaMorph |
+		cadaMorph position: cadaMorph position + diferencia ].
+	desplazamiento := nuevoDesplazamiento
+]
+
 { #category : 'private' }
 VentanaSolitario >> construirBarraSuperior [
 	| botonNueva botonDeshacer |
@@ -77,6 +104,7 @@ VentanaSolitario >> construirBarraSuperior [
 		actionSelector: #nuevaPartida;
 		position: self position + (500 @ 14);
 		yourself.
+	self estilizarBoton: botonNueva.
 	self addMorph: botonNueva.
 
 	botonDeshacer := SimpleButtonMorph new
@@ -85,6 +113,7 @@ VentanaSolitario >> construirBarraSuperior [
 		actionSelector: #deshacerMovimiento;
 		position: self position + (625 @ 14);
 		yourself.
+	self estilizarBoton: botonDeshacer.
 	self addMorph: botonDeshacer
 ]
 
@@ -93,7 +122,7 @@ VentanaSolitario >> construirContenedores [
 	| barraEstado |
 	contenedorTablero := Morph new.
 	contenedorTablero color: Color transparent.
-	contenedorTablero extent: 760 @ 505.
+	contenedorTablero extent: self anchoBase @ 505.
 	contenedorTablero position: self position + (0 @ 55).
 	self addMorph: contenedorTablero.
 
@@ -136,7 +165,7 @@ VentanaSolitario >> dibujarPiramide [
 	1 to: 7 do: [ :fila |
 		| anchoFila xInicial y |
 		anchoFila := (fila - 1) * espacioHorizontal + anchoCarta.
-		xInicial := (760 - anchoFila) // 2.
+		xInicial := (self anchoBase - anchoFila) // 2.
 		y := 10 + ((fila - 1) * 46).
 		1 to: fila do: [ :posicion |
 			| carta |
@@ -175,6 +204,7 @@ VentanaSolitario >> dibujarReservaYPozo [
 			target: self;
 			actionSelector: #reciclarPozo;
 			yourself.
+		self estilizarBoton: botonMezclar.
 		botonMezclar position: contenedorTablero position + ((248 - botonMezclar width) @ 434).
 		contenedorTablero addMorph: botonMezclar ].
 
@@ -204,8 +234,11 @@ VentanaSolitario >> ejecutarAccionJuego: unBloque mensajeExito: unMensaje [
 ]
 
 { #category : 'private' }
-VentanaSolitario >> fuenteDeEtiquetas [
-	^ LogicalFont familyName: 'Source Sans Pro' pointSize: 16
+VentanaSolitario >> estilizarBoton: unBoton [
+	"Fondo blanco con borde gris claro; el texto conserva su color oscuro para que se lea."
+	unBoton
+		color: Color white;
+		borderColor: Color lightGray
 ]
 
 { #category : 'private' }
@@ -215,10 +248,21 @@ VentanaSolitario >> estilizarEtiqueta: unaEtiqueta color: unColor [
 		color: unColor
 ]
 
+{ #category : 'geometry' }
+VentanaSolitario >> extent: unPunto [
+	super extent: unPunto.
+	self centrarContenido
+]
+
+{ #category : 'private' }
+VentanaSolitario >> fuenteDeEtiquetas [
+	^ LogicalFont familyName: 'Source Sans Pro' pointSize: 16
+]
+
 { #category : 'initialization' }
 VentanaSolitario >> initialize [
 	super initialize.
-	self extent: 760 @ 620.
+	self extent: self anchoBase @ self altoBase.
 	self color: (Color r: 0.0 g: 0.12 b: 0.25).
 	self borderWidth: 0.
 	registroDeRecords := RegistroDeRecords conArchivoPorDefecto.
@@ -290,6 +334,7 @@ VentanaSolitario >> seleccionarUbicacion: unaUbicacion [
 
 { #category : 'stepping' }
 VentanaSolitario >> step [
+	self centrarContenido.
 	juego ifNil: [ ^ self ].
 	juego estado permiteMovimientos ifFalse: [ ^ self ].
 	juego pasarSegundos: 1.
