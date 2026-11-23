@@ -98,7 +98,7 @@ VentanaSolitario >> construirContenedores [
 	self addMorph: contenedorTablero.
 
 	barraEstado := BorderedMorph new.
-	barraEstado color: (Color r: 0.0 g: 0.12 b: 0.25)
+	barraEstado color: (Color r: 0.0 g: 0.12 b: 0.25).
 	barraEstado borderColor: Color lightGray.
 	barraEstado borderWidth: 1.
 	barraEstado extent: 720 @ 36.
@@ -207,7 +207,7 @@ VentanaSolitario >> ejecutarAccionJuego: unBloque mensajeExito: unMensaje [
 VentanaSolitario >> initialize [
 	super initialize.
 	self extent: 760 @ 620.
-	self color: (Color r: 0.0 g: 0.12 b: 0.25)
+	self color: (Color r: 0.0 g: 0.12 b: 0.25).
 	self borderWidth: 0.
 	registroDeRecords := RegistroDeRecords conArchivoPorDefecto.
 	self construirBarraSuperior.
