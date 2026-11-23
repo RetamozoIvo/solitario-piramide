@@ -2,6 +2,7 @@
 Representa visualmente una carta (o un casillero de reserva/pozo) en Morphic para el Solitario de Pirámide.
 Carga y cachea la imagen JPG correspondiente al palo y valor desde la carpeta assets (con respaldo en texto si falta el archivo),
 atenúa cartas cubiertas, resalta la carta seleccionada y ejecuta un bloque de acción al hacer clic.
+El reverso (la reserva) se dibuja en blanco con texto negro y el logo de la facultad (assets/LOGO.png), si el archivo existe.
 "
 Class {
 	#name : 'CartaMorph',
@@ -37,6 +38,12 @@ CartaMorph class >> carpetaYPrefijoParaPalo: unPalo [
 ]
 
 { #category : 'assets' }
+CartaMorph class >> colorReverso [
+	"Fondo del reverso de la carta (la reserva): blanco, para que resalte sobre el fondo azul marino"
+	^ Color white
+]
+
+{ #category : 'assets' }
 CartaMorph class >> directorioAssets [
 	| candidatos |
 	[
@@ -56,6 +63,31 @@ CartaMorph class >> directorioAssets [
 	^ candidatos
 		detect: [ :unDirectorio | unDirectorio exists ]
 		ifNone: [ nil ]
+]
+
+{ #category : 'assets' }
+CartaMorph class >> imagenLogoReverso [
+	"Devuelve el logo de la facultad (assets/LOGO.png) escalado para el reverso, o nil si el archivo no está o no se puede leer"
+	| directorio archivo tamanoMaximo |
+	(self imagenesCache at: #logoReverso ifAbsent: [ nil ])
+		ifNotNil: [ :formEnCache | ^ formEnCache ].
+	tamanoMaximo := 44.
+	directorio := self directorioAssets.
+	directorio ifNil: [ ^ nil ].
+	archivo := directorio / 'LOGO.png'.
+	archivo exists ifFalse: [ ^ nil ].
+	^ [
+		| original escala escalado |
+		original := archivo binaryReadStreamDo: [ :stream |
+			ImageReadWriter formFromStream: stream ].
+		escala := (tamanoMaximo / original width) min: (tamanoMaximo / original height).
+		escalado := original
+			magnify: original boundingBox
+			by: escala @ escala
+			smoothing: 2.
+		self imagenesCache at: #logoReverso put: escalado.
+		escalado
+	] on: Error do: [ :ex | nil ]
 ]
 
 { #category : 'assets' }
@@ -151,6 +183,17 @@ CartaMorph >> agregarImagenDeCarta: unForm libre: estaLibre seleccionada: estaSe
 ]
 
 { #category : 'private' }
+CartaMorph >> agregarLogo: unForm [
+	"Coloca el logo centrado horizontalmente en la parte superior del reverso"
+	| logoMorph |
+	logoMorph := ImageMorph new
+		form: unForm;
+		yourself.
+	logoMorph position: self position + (((self width - unForm width) // 2) @ 6).
+	self addMorph: logoMorph
+]
+
+{ #category : 'private' }
 CartaMorph >> agregarTextoRespaldoParaCarta: unaCarta libre: estaLibre [
 	| colorTexto textoPalo |
 	colorTexto := self colorTextoParaCarta: unaCarta libre: estaLibre.
@@ -218,17 +261,25 @@ CartaMorph >> configurarPozoVacio [
 
 { #category : 'initialization' }
 CartaMorph >> configurarReservaConCantidad: unaCantidad accion: unBloque [
+	| logo |
 	accionAlClic := unBloque.
 	self extent: 72 @ 92.
 	self removeAllMorphs.
 
 	unaCantidad > 0
 		ifTrue: [
-			self color: (Color r: 0.16 g: 0.34 b: 0.62).
-			self borderColor: Color white.
+			self color: self class colorReverso.
+			self borderColor: Color darkGray.
 			self borderWidth: 2.
-			self agregarEtiqueta: 'Reserva' color: Color white desplazamiento: 11 @ 24.
-			self agregarEtiqueta: unaCantidad asString color: Color yellow desplazamiento: 28 @ 52 ]
+			logo := self class imagenLogoReverso.
+			logo
+				ifNotNil: [
+					self agregarLogo: logo.
+					self agregarEtiqueta: 'Reserva' color: Color black desplazamiento: 11 @ 54.
+					self agregarEtiqueta: unaCantidad asString color: Color black desplazamiento: 28 @ 70 ]
+				ifNil: [
+					self agregarEtiqueta: 'Reserva' color: Color black desplazamiento: 11 @ 24.
+					self agregarEtiqueta: unaCantidad asString color: Color black desplazamiento: 28 @ 52 ] ]
 		ifFalse: [
 			self color: (Color r: 0.09 g: 0.32 b: 0.17).
 			self borderColor: Color lightGray.
