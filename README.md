@@ -6,11 +6,11 @@ Comisión: (K2.1)
 Repositorio: https://github.com/RetamozoIvo/solitario-piramide
 
 ### Integrantes
-Daniel Agustín, Almada
-Tomas, Hernán Adrian
-Sol Magali, Avalos
-Ivo Luciano Emanuel, Retamozo Cabaña
-Milagros Belén, Ruiz Diaz
+- Daniel Agustín, Almada.
+- Tomas, Hernán Adrian.
+- Sol Magali, Avalos.
+- Ivo Luciano Emanuel, Retamozo Cabaña.
+- Milagros Belén, Ruiz Diaz.
 
 # Ejecución del Juego
 1. Abrir PlayGround en Pharo 
