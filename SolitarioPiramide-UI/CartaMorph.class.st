@@ -67,15 +67,16 @@ CartaMorph class >> directorioAssets [
 
 { #category : 'assets' }
 CartaMorph class >> imagenLogoReverso [
-	"Devuelve el logo de la facultad (assets/LOGO.png) escalado para el reverso, o nil si el archivo no está o no se puede leer"
-	| directorio archivo tamanoMaximo |
-	(self imagenesCache at: #logoReverso ifAbsent: [ nil ])
-		ifNotNil: [ :formEnCache | ^ formEnCache ].
-	tamanoMaximo := 44.
+	"Devuelve el logo de la facultad (assets/LOGO.png) escalado para centrarse en el reverso, o nil si el archivo no está o no se puede leer"
+	| directorio archivo tamanoMaximo claveCache |
+	tamanoMaximo := 70.
 	directorio := self directorioAssets.
 	directorio ifNil: [ ^ nil ].
 	archivo := directorio / 'LOGO.png'.
 	archivo exists ifFalse: [ ^ nil ].
+	claveCache := { #logoReverso. tamanoMaximo. archivo modificationTime }.
+	(self imagenesCache at: claveCache ifAbsent: [ nil ])
+		ifNotNil: [ :formEnCache | ^ formEnCache ].
 	^ [
 		| original escala escalado |
 		original := archivo binaryReadStreamDo: [ :stream |
@@ -85,7 +86,7 @@ CartaMorph class >> imagenLogoReverso [
 			magnify: original boundingBox
 			by: escala @ escala
 			smoothing: 2.
-		self imagenesCache at: #logoReverso put: escalado.
+		self imagenesCache at: claveCache put: escalado.
 		escalado
 	] on: Error do: [ :ex | nil ]
 ]
@@ -152,6 +153,15 @@ CartaMorph >> agregarEtiqueta: unTexto color: unColor desplazamiento: unPunto [
 ]
 
 { #category : 'private' }
+CartaMorph >> agregarEtiquetaCentrada: unTexto color: unColor enY: unaY [
+	| etiqueta |
+	etiqueta := StringMorph contents: unTexto.
+	etiqueta color: unColor.
+	etiqueta position: self position + (((self width - etiqueta width) // 2) @ unaY).
+	self addMorph: etiqueta
+]
+
+{ #category : 'private' }
 CartaMorph >> agregarImagenDeCarta: unForm libre: estaLibre seleccionada: estaSeleccionada [
 	| imagenMorph desplazamiento |
 	imagenMorph := ImageMorph new
@@ -184,12 +194,13 @@ CartaMorph >> agregarImagenDeCarta: unForm libre: estaLibre seleccionada: estaSe
 
 { #category : 'private' }
 CartaMorph >> agregarLogo: unForm [
-	"Coloca el logo centrado horizontalmente en la parte superior del reverso"
-	| logoMorph |
+	"Coloca el logo centrado horizontal y verticalmente en el reverso de la carta"
+	| logoMorph desplazamiento |
 	logoMorph := ImageMorph new
 		form: unForm;
 		yourself.
-	logoMorph position: self position + (((self width - unForm width) // 2) @ 6).
+	desplazamiento := ((self width - unForm width) // 2) @ ((self height - unForm height) // 2).
+	logoMorph position: self position + desplazamiento.
 	self addMorph: logoMorph
 ]
 
@@ -275,8 +286,7 @@ CartaMorph >> configurarReservaConCantidad: unaCantidad accion: unBloque [
 			logo
 				ifNotNil: [
 					self agregarLogo: logo.
-					self agregarEtiqueta: 'Reserva' color: Color black desplazamiento: 11 @ 54.
-					self agregarEtiqueta: unaCantidad asString color: Color black desplazamiento: 28 @ 70 ]
+					self agregarEtiquetaCentrada: unaCantidad asString color: Color black enY: 74 ]
 				ifNil: [
 					self agregarEtiqueta: 'Reserva' color: Color black desplazamiento: 11 @ 24.
 					self agregarEtiqueta: unaCantidad asString color: Color black desplazamiento: 28 @ 52 ] ]
