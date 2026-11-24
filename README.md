@@ -12,6 +12,11 @@ Sol Magali, Avalos
 Ivo Luciano Emanuel, Retamozo Cabaña
 Milagros Belén, Ruiz Diaz
 
+# Ejecución del Juego
+1. Abrir PlayGround en Pharo 
+2. Escribir: VentanaSolitario abrir
+3. Ejecutar
+
 ---
 
 ## Descripción
