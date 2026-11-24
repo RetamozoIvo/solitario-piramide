@@ -234,10 +234,14 @@ VentanaSolitario >> ejecutarAccionJuego: unBloque mensajeExito: unMensaje [
 
 { #category : 'private' }
 VentanaSolitario >> estilizarBoton: unBoton [
-	"Fondo blanco con borde gris claro; el texto conserva su color oscuro para que se lea."
+	"Fondo blanco con borde gris claro y texto negro explícito para que sea legible también en tema oscuro."
 	unBoton
 		color: Color white;
-		borderColor: Color lightGray
+		borderColor: Color lightGray;
+		borderWidth: 1.
+	unBoton allMorphsDo: [ :cadaMorph |
+		(cadaMorph isKindOf: StringMorph) ifTrue: [
+			cadaMorph color: Color black ] ]
 ]
 
 { #category : 'private' }
